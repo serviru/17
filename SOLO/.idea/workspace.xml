@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="fb6a95ee-554a-4c89-9894-24f9617c2898" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/venv/Include/mane.py" root0="SKIP_HIGHLIGHTING" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
+  <component name="ProjectId" id="2glgMyiIiCsnWI98Hh7vo1yo8V2" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.mane.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  },
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;sqlite&quot;
+    ]
+  }
+}</component>
+  <component name="RunManager">
+    <configuration name="mane" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="SOLO" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/venv/Include" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/venv/Include/mane.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.mane" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-1d06a55b98c1-91d5c284f522-JavaScript-PY-241.15989.155" />
+        <option value="bundled-python-sdk-babbdf50b680-7c6932dee5e4-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-241.15989.155" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="fb6a95ee-554a-4c89-9894-24f9617c2898" name="Changes" comment="" />
+      <created>1716277533947</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1716277533947</updated>
+      <workItem from="1716277534965" duration="2785000" />
+      <workItem from="1716288494143" duration="65226000" />
+      <workItem from="1716496673981" duration="67000" />
+      <workItem from="1716496817533" duration="20000" />
+      <workItem from="1716499454242" duration="625000" />
+      <workItem from="1716517332280" duration="59000" />
+      <workItem from="1716517408479" duration="33000" />
+      <workItem from="1716518068139" duration="15000" />
+      <workItem from="1716518209816" duration="93000" />
+      <workItem from="1716536521392" duration="623000" />
+      <workItem from="1716537220759" duration="84000" />
+      <workItem from="1716537369271" duration="1987000" />
+      <workItem from="1716562774508" duration="1217000" />
+      <workItem from="1716567165950" duration="154000" />
+      <workItem from="1716567343457" duration="340000" />
+      <workItem from="1716568005451" duration="6081000" />
+      <workItem from="1716575985989" duration="44000" />
+      <workItem from="1716619081420" duration="71000" />
+      <workItem from="1716619640554" duration="6168000" />
+      <workItem from="1716627235943" duration="96000" />
+      <workItem from="1716627348163" duration="23000" />
+      <workItem from="1716627386623" duration="107000" />
+      <workItem from="1716627530992" duration="278000" />
+      <workItem from="1716630666134" duration="146000" />
+      <workItem from="1716630930812" duration="31000" />
+      <workItem from="1716666226654" duration="624000" />
+      <workItem from="1716706277201" duration="49000" />
+      <workItem from="1716706495775" duration="62000" />
+      <workItem from="1716706578776" duration="193000" />
+      <workItem from="1716706885367" duration="1156000" />
+      <workItem from="1716709018112" duration="16000" />
+      <workItem from="1716709423830" duration="107000" />
+      <workItem from="1716709748175" duration="11000" />
+      <workItem from="1716714637589" duration="1816000" />
+      <workItem from="1716738212935" duration="2873000" />
+      <workItem from="1716744457408" duration="34000" />
+      <workItem from="1716744560352" duration="856000" />
+      <workItem from="1716745435815" duration="330000" />
+      <workItem from="1716776486267" duration="1575000" />
+      <workItem from="1716829814103" duration="263000" />
+      <workItem from="1716844526282" duration="74000" />
+      <workItem from="1716845754283" duration="51000" />
+      <workItem from="1716894400453" duration="2767000" />
+      <workItem from="1716899466876" duration="345000" />
+      <workItem from="1716903712233" duration="208000" />
+      <workItem from="1716903963619" duration="6000" />
+      <workItem from="1716910050478" duration="1010000" />
+      <workItem from="1716916589912" duration="43000" />
+      <workItem from="1716917184992" duration="136000" />
+      <workItem from="1716992685460" duration="32000" />
+      <workItem from="1717092862196" duration="21000" />
+      <workItem from="1717093139971" duration="187000" />
+      <workItem from="1717096735815" duration="1257000" />
+      <workItem from="1717122923328" duration="2572000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/SOLO$mane.coverage" NAME="mane Coverage Results" MODIFIED="1717142732505" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/venv/Include" />
+  </component>
+</project>
