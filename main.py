@@ -1,3 +1,6 @@
+
+
+'''
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 import sqlite3
@@ -140,7 +143,7 @@ def main():
 if __name__ == '__main__':
     main()
 
-    '''
+
 6625466018:AAFbUtVtlMJ6g8Oip1msrgwhWzKOxRLosiU
 #=============================================================================================================
 #код не дакод нужна тборадотка
@@ -390,7 +393,7 @@ if __name__ == '__main__':
 #==========================================================================
 работаем над этим кодом
 
-
+'''
 
 import telebot
 import os
@@ -401,7 +404,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext
 from telegram.update import Update
-from telegram.ext import CommandHandler
+from telegram.ext import CommandHandler, CallbackQueryHandler
 from telegram import ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import CallbackContext, MessageHandler, Filters, Dispatcher
 
@@ -519,7 +522,6 @@ def add_item(object_name, photo_id, message, user_id):
             raise e
 
 
-# Обработчики команд
 @bot.message_handler(commands=['start'])
 def start(message):
     user = bot.get_chat(message.chat.id)
@@ -543,26 +545,60 @@ def handle_menu_option(message):
     elif message.text == 'Редактировать':
         show_edit_menu(message)
     elif message.text == 'Отмена':
-        start(message)
+        bot.send_message(message.chat.id, "Добро пожаловать! Выберите действие:", reply_markup=get_main_menu_keyboard())
+
+def show_edit_menu(message):
+    # Получаем список объектов, доступных для редактирования
+    objects = get_objects_for_editing()
+
+    # Создаем клавиатуру с кнопками для выбора объекта
+    keyboard = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+    buttons = [types.KeyboardButton(object_names[obj]) for obj in objects]
+    buttons.append(types.KeyboardButton("Отмена"))
+    keyboard.add(*buttons)
+
+    # Отправляем сообщение с клавиатурой
+    bot.send_message(message.chat.id, "Выберите объект для редактирования:", reply_markup=keyboard)
+
+    # Сохраняем состояние пользователя
+    bot.set_state(message.chat.id, 'editing', message.chat.id)
+
+def send_message(update, context, results, index):
+    object_name, file_id, message = results[index]
+
+    # Создаем инлайн-клавиатуру с кнопками "Предыдущий", "Следующий" и "Редактировать"
+    keyboard = [
+        [InlineKeyboardButton("Предыдущий", callback_data='prev', resize_keyboard=True, width=1),
+         InlineKeyboardButton("Следующий", callback_data='next', resize_keyboard=True, width=1)],
+        [InlineKeyboardButton("Редактировать", callback_data='edit', resize_keyboard=True, width=1)]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard, resize_keyboard=True)
+
+    # Отправляем сообщение с фото или текстом
+    if file_id:
+        context.bot.send_photo(chat_id=update.effective_chat.id, photo=file_id, caption=f"{object_name}\n{message}",
+                               reply_markup=reply_markup)
+    else:
+        context.bot.send_message(chat_id=update.effective_chat.id, text=f"{object_name}\n{message}",
+                                 reply_markup=reply_markup)
+
+    # Сохраняем список результатов в контекст пользователя
+    context.user_data['results'] = results
+
+    # Сохраняем индекс текущего сообщения в контекст пользователя
+    context.user_data['current_index'] = index
 
 
 
-'''
-# Реализуйте обработку кнопки "Редактировать"
+@bot.message_handler(state='editing', func=lambda message: message.text == "Отмена")
+def handle_edit_menu_cancel(message):
+    # Возвращаем пользователя в главное меню
+    start(message)
 
-# Здесь вы можете показать пользователю список объектов, которые можно отредактировать
 
-# и запросить дополнительную информацию для редактирования
-
-'''
-
-def handle_menu_option(update, context):
-    if update.message.text == "Редактировать":
-        show_edit_menu(update, context)
-    elif update.message.text == "Удалить":
-        show_delete_menu(update, context)
-    elif update.message.text == "Отмена":
-        show_main_menu(update, context)
+def get_objects_for_editing():
+    # Возвращаем ключи словаря object_names
+    return list(object_names.keys())
 
 def show_main_menu(update, context):
     # Создание клавиатуры с основными опциями
@@ -573,147 +609,12 @@ def show_main_menu(update, context):
 
 
 
-def start(update: Update, context: CallbackContext):
-    show_edit_menu(update, context)
-
-from telegram import ReplyKeyboardMarkup, KeyboardButton
-from telegram.ext import CallbackContext, MessageHandler, Filters
-
-def start_edit_menu(update: Update, context: CallbackContext) -> None:
-    """
-    Запускает меню редактирования.
-    """
-    object_names = get_unique_object_names()
-    page_size = 5
-    current_page = 0
-    total_pages = (len(object_names) + page_size - 1) // page_size
-
-    send_edit_message(update, context, object_names, current_page, total_pages)
-    context.dispatcher.add_handler(MessageHandler(Filters.text, handle_edit_menu))
-
-def create_edit_keyboard(object_names: list, current_page: int, total_pages: int) -> ReplyKeyboardMarkup:
-    """
-    Создает клавиатуру с кнопками для редактирования.
-    """
-    page_size = 5
-    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-
-    for i in range(current_page * page_size, min((current_page + 1) * page_size, len(object_names))):
-        keyboard.add(KeyboardButton(object_names[i]))
-
-    if current_page > 0:
-        keyboard.add(KeyboardButton("⬅️ Назад"))
-    if current_page < total_pages - 1:
-        keyboard.add(KeyboardButton("Вперед ➡️"))
-    keyboard.add(KeyboardButton("Отмена"))
-
-    return keyboard
+def start(message):
+    bot.send_message(message.chat.id, "Добро пожаловать! Выберите действие:", reply_markup=get_main_menu_keyboard())
 
 
 
-def send_edit_message(update: Update, context: CallbackContext, object_names: list, current_page: int, total_pages: int) -> None:
-    """
-    Отправляет сообщение с клавиатурой для редактирования.
-    """
-    keyboard = create_edit_keyboard(object_names, current_page, total_pages)
-    update.message.reply_text(f"Выберите объект для редактирования (страница {current_page + 1} из {total_pages}):", reply_markup=keyboard)
 
-def handle_edit_menu(update: Update, context: CallbackContext) -> None:
-    """
-    Обрабатывает нажатия на кнопки в меню редактирования.
-    """
-    text = update.message.text
-    if text == "⬅️ Назад":
-        # Обработка перехода на предыдущую страницу
-        pass
-    elif text == "Вперед ➡️":
-        # Обработка перехода на следующую страницу
-        pass
-    elif text == "Отмена":
-        # Обработка отмены
-        pass
-    else:
-        # Обработка выбора объекта для редактирования
-        pass
-
-
-
-def start_edit_menu(update: Update, context: CallbackContext) -> None:
-    """
-    Запускает меню редактирования.
-    """
-    object_names = get_unique_object_names()
-    page_size = 5
-    current_page = 0
-    total_pages = (len(object_names) + page_size - 1) // page_size
-
-    send_edit_message(update, context, object_names, current_page, total_pages)
-    context.dispatcher.add_handler(MessageHandler(Filters.text, handle_edit_menu))
-    context.dispatcher.add_handler(MessageHandler(Filters.message, handle_edit_menu))
-
-
-
-def handle_object_selection(update, context, keyboard):
-    message = update.message
-    # Обработка выбора объекта
-    selected_object = message.text
-    if selected_object == "Отмена":
-        # Отменяем операцию
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Операция отменена.", reply_markup=ReplyKeyboardRemove())
-    else:
-        # Переходим к следующему шагу - обработка действий с объектом
-        context.bot.send_message(chat_id=update.effective_chat.id, text=f"Вы выбрали объект: {selected_object}")
-        handle_edit_delete_action(update, context, selected_object, keyboard)
-
-def handle_edit_delete_action(message, selected_object, keyboard):
-    # Создаем клавиатуру с кнопками "Изменить", "Удалить" и "Отмена"
-    edit_delete_keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("Изменить", callback_data="edit")],
-                                                [InlineKeyboardButton("Удалить", callback_data="delete")],
-                                                [InlineKeyboardButton("Отмена", callback_data="cancel")]])
-
-    # Отправляем сообщение с клавиатурой
-    bot.send_message(chat_id=message.chat.id, text=f"Что вы хотите сделать с объектом '{selected_object}'?", reply_markup=edit_delete_keyboard)
-
-    # Переходим к следующему шагу - обработка выбора действия
-    bot.register_next_step_handler(message, handle_edit_delete_choice, selected_object, keyboard)
-
-def handle_edit_delete_choice(message, selected_object, keyboard):
-    # Получаем выбранное действие из callback_data
-    choice = message.callback_query.data
-
-    if choice == "edit":
-        # Отправляем сообщение с новой клавиатурой для выбора, что именно изменить
-        edit_options_keyboard = InlineKeyboardMarkup([[InlineKeyboardButton("Изменить название", callback_data="edit_name")],
-                                                     [InlineKeyboardButton("Изменить описание", callback_data="edit_description")],
-                                                     [InlineKeyboardButton("Отмена", callback_data="cancel")]])
-        bot.send_message(chat_id=message.chat.id, text="Что вы хотите изменить?", reply_markup=edit_options_keyboard)
-        bot.register_next_step_handler(message, handle_edit_choice, selected_object, keyboard)
-    elif choice == "delete":
-        # Обработка выбора "Удалить"
-        delete_object(selected_object)
-    elif choice == "cancel":
-        # Обработка выбора "Отмена"
-        cancel_action(selected_object)
-    else:
-        # Если выбор не распознан, отправляем сообщение об ошибке
-        bot.send_message(chat_id=message.chat.id, text="Неизвестный выбор. Попробуйте еще раз.")
-
-def handle_edit_choice(message, selected_object, keyboard):
-    # Получаем выбранное действие из callback_data
-    choice = message.callback_query.data
-
-    if choice == "edit_name":
-        # Обработка выбора "Изменить название"
-        edit_name(selected_object)
-    elif choice == "edit_description":
-        # Обработка выбора "Изменить описание"
-        edit_description(selected_object)
-    elif choice == "cancel":
-        # Обработка выбора "Отмена"
-        cancel_action(selected_object)
-    else:
-        # Если выбор не распознан, отправляем сообщение об ошибке
-        bot.send_message(chat_id=message.chat.id, text="Неизвестный выбор. Попробуйте еще раз.")
 
 def get_unique_object_names():
     conn = get_db_connection()
@@ -723,70 +624,21 @@ def get_unique_object_names():
         return [row[0] for row in cursor.fetchall()]
 
 
-def get_items_by_object_name(selected_object):
-    conn = get_db_connection()
-    with conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM items WHERE object_name = ?", (selected_object,))
-        return [Item(row[0], row[1], row[2], row[3], row[4]) for row in cursor.fetchall()]
-
-
-def get_items_by_object_name(selected_object):
-    conn = get_db_connection()
-    with conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM items WHERE object_name = ?", (selected_object,))
-        return [Item(row[0], row[1], row[2], row[3], row[4]) for row in cursor.fetchall()]
-
-
-
-def edit_item(message, item):
-    # Запросить у пользователя новые данные для редактирования
-    bot.send_message(chat_id=message.chat.id, text=f"Редактирование объекта {item.object_name}:")
-    bot.register_next_step_handler(message, update_item, item)
-
-def update_item(message, item):
-    # Обновить данные объекта в базе данных
-    new_message = message.text
-    conn = get_db_connection()
-    with conn:
-        cursor = conn.cursor()
-        cursor.execute("UPDATE items SET message = ? WHERE id = ?", (new_message, item.id))
-    bot.send_message(chat_id=message.chat.id, text=f"Объект '{item.object_name}' был успешно обновлен.")
-    show_edit_menu(message)
-
-
-def delete_item(message, item):
-    # Удалить объект из базы данных
-    conn = get_db_connection()
-    with conn:
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM items WHERE id = ?", (item.id,))
-    bot.send_message(chat_id=message.chat.id, text=f"Объект '{item.object_name}' был успешно удален.")
-    show_edit_menu(message)
-
-
-class Item:
-    def __init__(self, id, object_name, photo_id, message, user_id):
-        self.id = id
-        self.object_name = object_name
-        self.photo_id = photo_id
-        self.message = message
-        self.user_id = user_id
-
-
-
-#===============================================================================
-#bot.reply_to(message, "Вы выбрали 'Редактировать'. Функционал находится в разработке.")
-
-
 def show_object_selection(message):
     keyboard = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
     buttons = [types.KeyboardButton(name) for name in object_names.values()]
+    buttons.append(types.KeyboardButton("Отмена"))
     keyboard.add(*buttons)
 
     msg = bot.send_message(message.chat.id, "Выберите объект:", reply_markup=keyboard)
     bot.register_next_step_handler(msg, process_selected_object)
+
+
+@bot.message_handler(func=lambda message: message.text == "Отмена")
+def handle_object_selection_cancel(message):
+    # Возвращаем пользователя в главное меню
+    bot.send_message(message.chat.id, "Добро пожаловать! Выберите действие:", reply_markup=get_main_menu_keyboard())
+
 
 def process_selected_object(message):
     selected_object = message.text
@@ -880,18 +732,7 @@ def get_user_id(chat_id):
         else:
             return None
 
-def start(update: Update, context: CallbackContext) -> None:
-    """
-    Запускает меню редактирования.
-    """
-    object_names = get_unique_object_names()
-    page_size = 5
-    current_page = 0
-    total_pages = (len(object_names) + page_size - 1) // page_size
 
-    send_edit_message(update, context, object_names, current_page, total_pages)
-    context.dispatcher.add_handler(MessageHandler(Filters.text, handle_edit_menu))
-    context.dispatcher.add_handler(MessageHandler(Filters.message, handle_edit_menu))
 
 def main() -> None:
     """
@@ -914,7 +755,7 @@ if __name__ == '__main__':
             time.sleep(10)
 
 
-
+'''
 
 #базовы код
 #===========================================================================
