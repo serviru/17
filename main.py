@@ -532,37 +532,126 @@ def start(message):
 
 def get_main_menu_keyboard():
     keyboard = types.ReplyKeyboardMarkup(row_width=3, resize_keyboard=True)
-    buttons = [types.KeyboardButton(name) for name in ['Добавить', 'Просмотреть', 'Редактировать', 'Отмена']]
+    buttons = [types.KeyboardButton(name) for name in ['Добавить', 'Просмотреть', 'Отмена']]
     keyboard.add(*buttons)
     return keyboard
 
-@bot.message_handler(func=lambda message: message.text in ['Добавить', 'Просмотреть', 'Редактировать', 'Отмена'])
+@bot.message_handler(func=lambda message: message.text in ['Добавить', 'Просмотреть',  'Отмена'])
 def handle_menu_option(message):
     if message.text == 'Добавить':
         show_object_selection(message)
     elif message.text == 'Просмотреть':
-        show_look_menu(message)
-    elif message.text == 'Редактировать':
-        show_edit_menu(message)
+        show_menu(message)
+    #elif message.text == 'Редактировать':
+        #show_menu(message)
     elif message.text == 'Отмена':
         bot.send_message(message.chat.id, "Добро пожаловать! Выберите действие:", reply_markup=get_main_menu_keyboard())
 
-def show_edit_menu(message):
-    # Получаем список объектов, доступных для редактирования
-    objects = get_objects_for_editing()
+def show_menu(message):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute("SELECT DISTINCT object_name FROM items")
+    object_names = [row[0] for row in c.fetchall()]
 
-    # Создаем клавиатуру с кнопками для выбора объекта
-    keyboard = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
-    buttons = [types.KeyboardButton(object_names[obj]) for obj in objects]
-    buttons.append(types.KeyboardButton("Отмена"))
-    keyboard.add(*buttons)
+    markup = types.ReplyKeyboardMarkup(row_width=3, resize_keyboard=True)
+    buttons = [types.KeyboardButton(name) for name in object_names]
+    for i in range(0, len(buttons), 3):
+        markup.add(*buttons[i:i+3])
 
-    # Отправляем сообщение с клавиатурой
-    bot.send_message(message.chat.id, "Выберите объект для редактирования:", reply_markup=keyboard)
+    markup.add(types.KeyboardButton('Все объекты'), types.KeyboardButton('Назад'))
 
-    # Сохраняем состояние пользователя
-    bot.set_state(message.chat.id, 'editing', message.chat.id)
+    bot.send_message(chat_id=message.chat.id, text='Выберите, что вы хотите просмотреть:', reply_markup=markup)
 
+
+
+
+
+@bot.message_handler(content_types=['text'])
+def handle_menu_options(message):
+        if message.text == 'Все объекты':
+            # Обработка выбора "Все объекты"
+            show_all_objects(message)
+        elif message.text in object_names:
+            # Обработка выбора конкретного объекта
+            show_object_details(message, message.text)
+        elif message.text == 'Назад':
+            start(message)
+
+        else:
+            bot.send_message(chat_id=message.chat.id, text='Неверный выбор. Попробуйте еще раз.')
+
+def show_all_objects(message):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute("SELECT object_name, message, photos.file_id FROM items "
+              "LEFT JOIN photos ON items.photo_id = photos.id")
+    rows = c.fetchall()
+    for row in rows:
+        if row[2]:
+            bot.send_photo(chat_id=message.chat.id, photo=row[2],
+                           caption=f"Объект: {row[0]}\nСообщение: {row[1]}")
+        else:
+            bot.send_message(chat_id=message.chat.id, text=f"Объект: {row[0]}\nСообщение: {row[1]}")
+
+def show_object_details(message, object_name, page=1):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute("SELECT items.id, object_name, message, photos.file_id "
+              "FROM items "
+              "LEFT JOIN photos ON items.photo_id = photos.id "
+              "WHERE object_name = ? "
+              "LIMIT 1 OFFSET ?", (object_name, (page - 1) * 1))
+    row = c.fetchone()
+    if row:
+        if row[3]:
+            bot.send_photo(chat_id=message.chat.id, photo=row[3],
+                           caption=f"Объект: {row[1]}\nСообщение: {row[2]}")
+        else:
+            bot.send_message(chat_id=message.chat.id, text=f"Объект: {row[1]}\nСообщение: {row[2]}")
+
+        c.execute("SELECT COUNT(*) FROM items WHERE object_name = ?", (object_name,))
+        total_count = c.fetchone()[0]
+        current_page = page
+
+        # Вычисляем количество страниц
+        objects_per_page = 1
+        total_pages = (total_count + objects_per_page - 1) // objects_per_page
+
+        markup = types.InlineKeyboardMarkup(row_width=4)
+        buttons = []
+        if current_page > 1:
+            buttons.append(types.InlineKeyboardButton("Предыдущий", callback_data=f"prev_{object_name}_{current_page-1}"))
+        buttons.append(types.InlineKeyboardButton("Выбрать", callback_data=f"select_{row[0]}"))
+        if current_page < total_pages:
+            buttons.append(types.InlineKeyboardButton("Следующий", callback_data=f"next_{object_name}_{current_page+1}"))
+        buttons.append(types.InlineKeyboardButton("Назад", callback_data="back"))
+        markup.add(*buttons)
+
+        bot.send_message(chat_id=message.chat.id, text=f"Страница {current_page} из {total_pages}", reply_markup=markup)
+    else:
+        bot.send_message(chat_id=message.chat.id, text='Объект не найден.')
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data.startswith("prev_"):
+        _, object_name, page = call.data.split("_")
+        show_object_details(call.message, object_name, int(page))
+    elif call.data.startswith("next_"):
+        _, object_name, page = call.data.split("_")
+        show_object_details(call.message, object_name, int(page))
+    elif call.data.startswith("select_"):
+        _, object_id = call.data.split("_")
+        show_object_details(call.message, object_id)
+    elif call.data == "back":
+        show_menu(call.message)
+    bot.answer_callback_query(call.id)
+
+
+
+
+
+'''
 def send_message(update, context, results, index):
     object_name, file_id, message = results[index]
 
@@ -589,7 +678,7 @@ def send_message(update, context, results, index):
     context.user_data['current_index'] = index
 
 
-
+'''
 @bot.message_handler(state='editing', func=lambda message: message.text == "Отмена")
 def handle_edit_menu_cancel(message):
     # Возвращаем пользователя в главное меню

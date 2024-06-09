@@ -3,29 +3,22 @@ from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 import sqlite3
 from telebot.types import InputMediaPhoto
 from telegram.update import Update
-
 import telebot
 import os
-import sqlite3
-from telebot import TeleBot, types
 import time
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext
-from telegram.update import Update
-from telegram.ext import CommandHandler
-from telegram import ReplyKeyboardMarkup, KeyboardButton
-from telegram.ext import CallbackContext, MessageHandler, Filters, Dispatcher
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import CommandHandler, MessageHandler, Filters, Dispatcher
 
 
 
-def start(update, context):
+def startt(update, context):
     # Создаем инлайн-клавиатуру с кнопками в ряд по две, адаптируясь к ширине экрана
     keyboard = [
-        [#InlineKeyboardButton("Изменить", callback_data='edit', resize_keyboard=True, width=1),
-         InlineKeyboardButton("Изменить", callback_data='delete', resize_keyboard=True, width=1)],
-        [InlineKeyboardButton("Отмена", callback_data='cancel', resize_keyboard=True, width=1)]
+        [InlineKeyboardButton("Изменить", callback_data='to change', resize_keyboard=True, width=1)]
+         #InlineKeyboardButton("Удалить", callback_data='delete', resize_keyboard=True, width=1)],
+        #[InlineKeyboardButton("Отмена", callback_data='cancel', resize_keyboard=True, width=1)]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard, resize_keyboard=True)
 
@@ -35,12 +28,13 @@ def start(update, context):
     # Регистрируем обработчик для обработки нажатий на кнопки
     context.dispatcher.add_handler(CallbackQueryHandler(button_click))
 
-
 def button_click(update, context):
     query = update.callback_query
     query.answer()  # Удаляем индикатор загрузки
 
-    if query.data == 'delete':
+
+
+    if query.data == 'to change':
         # Создаем новое соединение с базой данных для этого потока
         conn = sqlite3.connect('database.db')
         c = conn.cursor()
@@ -204,6 +198,8 @@ def button_click(update, context):
         send_message(update, context, results, 0)
 
 
+
+
 def send_message(update, context, results, index):
     object_name, file_id, message = results[index]
 
@@ -281,10 +277,11 @@ def show_message_actions(update, context):
     current_index = context.user_data.get('current_index', 0)
     results = context.user_data.get('results', [])
 
-    # Создаем инлайн-клавиатуру с кнопками "Изменить", "Сохранить" и "Назад"
+    # Создаем инлайн-клавиатуру с кнопками "Изменить", "Сохранить", "Удалить" и "Назад"
     keyboard = [
         [InlineKeyboardButton("Изменить", callback_data='edit', resize_keyboard=True, width=1),
-         InlineKeyboardButton("Сохранить", callback_data='save', resize_keyboard=True, width=1)],
+         InlineKeyboardButton("Сохранить", callback_data='save', resize_keyboard=True, width=1),
+         InlineKeyboardButton("Удалить", callback_data='delete', resize_keyboard=True, width=1)],
         [InlineKeyboardButton("Назад", callback_data='cancel', resize_keyboard=True, width=1)]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard, resize_keyboard=True)
@@ -353,11 +350,11 @@ def cancel(update, context):
 
 
 def main():
-    updater = Updater(token='', use_context=True)
+    updater = Updater(token='6625466018:AAFbUtVtlMJ6g8Oip1msrgwhWzKOxRLosiU', use_context=True)
     dispatcher = updater.dispatcher
 
     # Регистрируем обработчики команд и callback-ов
-    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CommandHandler("startt", startt))
     dispatcher.add_handler(CallbackQueryHandler(button_click))
     dispatcher.add_handler(CallbackQueryHandler(handle_select, pattern='select'))
     dispatcher.add_handler(CallbackQueryHandler(edit, pattern='edit'))
