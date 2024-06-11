@@ -558,7 +558,7 @@ def show_menu(message):
     for i in range(0, len(buttons), 3):
         markup.add(*buttons[i:i+3])
 
-    markup.add(types.KeyboardButton('Все объекты'), types.KeyboardButton('Назад'))
+    markup.add(types.KeyboardButton('Все объекты'), types.KeyboardButton('Меню'))
 
     bot.send_message(chat_id=message.chat.id, text='Выберите, что вы хотите просмотреть:', reply_markup=markup)
 
@@ -574,7 +574,7 @@ def handle_menu_options(message):
         elif message.text in object_names:
             # Обработка выбора конкретного объекта
             show_object_details(message, message.text)
-        elif message.text == 'Назад':
+        elif message.text == 'Меню':
             start(message)
 
         else:
@@ -617,7 +617,7 @@ def show_object_details(message, object_name, page=1):
         objects_per_page = 1
         total_pages = (total_count + objects_per_page - 1) // objects_per_page
 
-        markup = types.InlineKeyboardMarkup(row_width=4)
+        markup = types.InlineKeyboardMarkup(row_width=3)
         buttons = []
         if current_page > 1:
             buttons.append(types.InlineKeyboardButton("Предыдущий", callback_data=f"prev_{object_name}_{current_page-1}"))
@@ -642,10 +642,32 @@ def handle_callback(call):
         show_object_details(call.message, object_name, int(page))
     elif call.data.startswith("select_"):
         _, object_id = call.data.split("_")
-        show_object_details(call.message, object_id)
+        show_object_details_with_actions(call.message.chat.id, object_id)
+    elif call.data == "done":
+        # Обработка кнопки "Выполнено"
+        pass
     elif call.data == "back":
         show_menu(call.message)
     bot.answer_callback_query(call.id)
+
+def show_object_details_with_actions(chat_id, object_id):
+    # Получаем детали объекта
+    object_details = get_object_details(object_id)
+
+    # Формируем клавиатуру с кнопками "Выполнено" и "Меню"
+    keyboard = InlineKeyboardMarkup()
+    done_button = InlineKeyboardButton("Выполнено", callback_data="done")
+    menu_button = InlineKeyboardButton("Меню", callback_data="back")
+    keyboard.add(done_button)
+    keyboard.add(menu_button)
+
+    # Отправляем новое сообщение с деталями объекта и клавиатурой
+    bot.send_message(
+        chat_id=chat_id,
+        text=format_object_details(object_details),
+        reply_markup=keyboard
+    )
+
 
 
 
@@ -716,7 +738,7 @@ def get_unique_object_names():
 def show_object_selection(message):
     keyboard = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
     buttons = [types.KeyboardButton(name) for name in object_names.values()]
-    buttons.append(types.KeyboardButton("Отмена"))
+    buttons.append(types.KeyboardButton("Меню"))
     keyboard.add(*buttons)
 
     msg = bot.send_message(message.chat.id, "Выберите объект:", reply_markup=keyboard)
