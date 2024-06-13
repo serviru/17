@@ -1,0 +1,15 @@
+telebot
+os
+sqlite3
+time
+telegram.ReplyKeyboardMarkup
+telegram.KeyboardButton
+telegram.InlineKeyboardButton
+telegram.InlineKeyboardMarkup
+telegram.ext.CallbackContext
+telegram.ext.CommandHandler
+telegram.ext.CallbackQueryHandler
+telegram.ext.MessageHandler
+telegram.ext.Filters
+telegram.ext.Dispatcher
+python-telegram-bot==13.14
