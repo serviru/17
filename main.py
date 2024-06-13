@@ -784,23 +784,690 @@ def handle_callback(call):
     bot.answer_callback_query(call.id)
 
 def show_object_details_with_actions(chat_id, object_id):
+    conn = get_db_connection()
+    with conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT items.object_name, items.message, photos.file_id, items.user_id "
+                      "FROM items "
+                      "LEFT JOIN photos ON items.photo_id = photos.id "
+                      "WHERE items.id = ?", (object_id,))
+        row = cursor.fetchone()
+        if row:
+            message_text = f"Объект: {row[0]}\nСообщение: {row[1]}"
+            if row[2]:
+                # Если есть фото, отправляем его
+                bot.send_photo(chat_id=chat_id, photo=row[2], caption=message_text)
+            else:
+                # Если нет фото, отправляем только текст
+                bot.send_message(chat_id=chat_id, text=message_text)
+
+            # Получаем идентификатор пользователя, который создал объект
+            user_id = row[3]
+
+            # Формируем клавиатуру с кнопками
+            keyboard = InlineKeyboardMarkup()
+            add_photo_button = InlineKeyboardButton("Добавить фото", callback_data=f"add_photo_{object_id}")
+            edit_message_button = InlineKeyboardButton("Изменить сообщение", callback_data=f"edit_message_{object_id}")
+            menu_button = InlineKeyboardButton("Меню", callback_data="back")
+            keyboard.add(add_photo_button, edit_message_button)
+            keyboard.add(menu_button)
+            bot.send_message(chat_id=chat_id, text="Выберите действие:", reply_markup=keyboard)
+        else:
+            # Если объект не найден, отправляем сообщение об ошибке
+            bot.send_message(chat_id=chat_id, text="Объект не найден.")
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data.startswith("add_photo_"):
+        _, object_id = call.data.split("_")
+        handle_add_photo(call.message.chat.id, object_id, call.from_user.id)
+    elif call.data.startswith("edit_message_"):
+        _, object_id = call.data.split("_")
+        handle_edit_message(call.message.chat.id, object_id, call.from_user.id)
+    elif call.data == "back":
+        show_menu(call.message)
+    bot.answer_callback_query(call.id)
+
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data.startswith("add_photo_"):
+        _, object_id = call.data.split("_")
+        handle_add_photo(call.message.chat.id, object_id)
+    elif call.data.startswith("edit_message_"):
+        _, object_id = call.data.split("_")
+        handle_edit_message(call.message.chat.id, object_id)
+    elif call.data == "back":
+        show_menu(call.message)
+    bot.answer_callback_query(call.id)
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data.startswith("add_photo_"):
+        _, object_id = call.data.split("_")
+        handle_add_photo(call.message.chat.id, object_id)
+    elif call.data.startswith("edit_message_"):
+        _, object_id = call.data.split("_")
+        handle_edit_message(call.message.chat.id, object_id)
+    elif call.data == "back":
+        show_menu(call.message)
+    bot.answer_callback_query(call.id)
+def show_object_details_with_actions(chat_id, object_id):
     # Получаем детали объекта
-    object_details = get_object_details(object_id) # type: ignore
+    object_details = get_object_details(object_id)
+    if object_details:
+        # Формируем сообщение с деталями объекта
+        message_text = f"Объект: {object_details['object_name']}\nСообщение: {object_details['message']}"
+        if object_details['file_id']:
+            # Если есть фото, отправляем его
+            bot.send_photo(chat_id=chat_id, photo=object_details['file_id'], caption=message_text)
+        else:
+            # Если нет фото, отправляем только текст
+            bot.send_message(chat_id=chat_id, text=message_text)
 
-    # Формируем клавиатуру с кнопками "Выполнено" и "Меню"
-    keyboard = InlineKeyboardMarkup()
-    done_button = InlineKeyboardButton("Выполнено", callback_data="done")
-    menu_button = InlineKeyboardButton("Меню", callback_data="back")
-    keyboard.add(done_button)
-    keyboard.add(menu_button)
+        # Формируем клавиатуру с кнопками
+        keyboard = InlineKeyboardMarkup()
+        add_photo_button = InlineKeyboardButton("Добавить фото", callback_data=f"add_photo_{object_id}")
+        edit_message_button = InlineKeyboardButton("Изменить сообщение", callback_data=f"edit_message_{object_id}")
+        menu_button = InlineKeyboardButton("Меню", callback_data="back")
+        keyboard.add(add_photo_button, edit_message_button)
+        keyboard.add(menu_button)
+        bot.send_message(chat_id=chat_id, text="Выберите действие:", reply_markup=keyboard)
+    else:
+        # Если объект не найден, отправляем сообщение об ошибке
+        bot.send_message(chat_id=chat_id, text="Объект не найден.")
 
-    # Отправляем новое сообщение с деталями объекта и клавиатурой
-    bot.send_message(
-        chat_id=chat_id,
-        text=format_object_details(object_details), # type: ignore
-        reply_markup=keyboard
-    )
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data.startswith("add_photo_"):
+        _, object_id = call.data.split("_")
+        handle_add_photo(call.message.chat.id, object_id)
+    elif call.data.startswith("edit_message_"):
+        _, object_id = call.data.split("_")
+        handle_edit_message(call.message.chat.id, object_id)
+    elif call.data == "back":
+        show_menu(call.message)
+    bot.answer_callback_query(call.id)
+def show_object_details_with_actions(chat_id, object_id):
+    # Получаем детали объекта
+    object_details = get_object_details(object_id)
+    if object_details:
+        # Формируем сообщение с деталями объекта
+        message_text = f"Объект: {object_details['object_name']}\nСообщение: {object_details['message']}"
+        if object_details['file_id']:
+            # Если есть фото, отправляем его
+            bot.send_photo(chat_id=chat_id, photo=object_details['file_id'], caption=message_text)
+        else:
+            # Если нет фото, отправляем только текст
+            bot.send_message(chat_id=chat_id, text=message_text)
 
+        # Формируем клавиатуру с кнопками
+        keyboard = InlineKeyboardMarkup()
+        add_photo_button = InlineKeyboardButton("Добавить фото", callback_data=f"add_photo_{object_id}")
+        edit_message_button = InlineKeyboardButton("Изменить сообщение", callback_data=f"edit_message_{object_id}")
+        menu_button = InlineKeyboardButton("Меню", callback_data="back")
+        keyboard.add(add_photo_button, edit_message_button)
+        keyboard.add(menu_button)
+        bot.send_message(chat_id=chat_id, text="Выберите действие:", reply_markup=keyboard)
+    else:
+        # Если объект не найден, отправляем сообщение об ошибке
+        bot.send_message(chat_id=chat_id, text="Объект не найден.")
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data.startswith("add_photo_"):
+        _, object_id = call.data.split("_")
+        handle_add_photo(call.message.chat.id, object_id)
+    elif call.data.startswith("edit_message_"):
+        _, object_id = call.data.split("_")
+        handle_edit_message(call.message.chat.id, object_id)
+    elif call.data == "back":
+        show_menu(call.message)
+    bot.answer_callback_query(call.id)
+def show_object_details_with_actions(chat_id, object_id):
+    # Получаем детали объекта
+    object_details = get_object_details(object_id)
+    if object_details:
+        # Формируем сообщение с деталями объекта
+        message_text = f"Объект: {object_details['object_name']}\nСообщение: {object_details['message']}"
+        if object_details['file_id']:
+            # Если есть фото, отправляем его
+            bot.send_photo(chat_id=chat_id, photo=object_details['file_id'], caption=message_text)
+        else:
+            # Если нет фото, отправляем только текст
+            bot.send_message(chat_id=chat_id, text=message_text)
+
+        # Формируем клавиатуру с кнопками
+        keyboard = InlineKeyboardMarkup()
+        add_photo_button = InlineKeyboardButton("Добавить фото", callback_data=f"add_photo_{object_id}")
+        edit_message_button = InlineKeyboardButton("Изменить сообщение", callback_data=f"edit_message_{object_id}")
+        menu_button = InlineKeyboardButton("Меню", callback_data="back")
+        keyboard.add(add_photo_button, edit_message_button)
+        keyboard.add(menu_button)
+        bot.send_message(chat_id=chat_id, text="Выберите действие:", reply_markup=keyboard)
+    else:
+        # Если объект не найден, отправляем сообщение об ошибке
+        bot.send_message(chat_id=chat_id, text="Объект не найден.")
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data.startswith("add_photo_"):
+        _, object_id = call.data.split("_")
+        handle_add_photo(call.message.chat.id, object_id)
+    elif call.data.startswith("edit_message_"):
+        _, object_id = call.data.split("_")
+        handle_edit_message(call.message.chat.id, object_id)
+    elif call.data == "back":
+        show_menu(call.message)
+    bot.answer_callback_query(call.id)
+
+    
+def show_object_details_with_actions(chat_id, object_id):
+    # Получаем детали объекта
+    object_details = get_object_details(object_id)
+    if object_details:
+        # Формируем сообщение с деталями объекта
+        message_text = f"Объект: {object_details['object_name']}\nСообщение: {object_details['message']}"
+        if object_details['file_id']:
+            # Если есть фото, отправляем его
+            bot.send_photo(chat_id=chat_id, photo=object_details['file_id'], caption=message_text)
+        else:
+            # Если нет фото, отправляем только текст
+            bot.send_message(chat_id=chat_id, text=message_text)
+
+        # Формируем клавиатуру с кнопками
+        keyboard = InlineKeyboardMarkup()
+        add_photo_button = InlineKeyboardButton("Добавить фото", callback_data=f"add_photo_{object_id}")
+        edit_message_button = InlineKeyboardButton("Изменить сообщение", callback_data=f"edit_message_{object_id}")
+        menu_button = InlineKeyboardButton("Меню", callback_data="back")
+        keyboard.add(add_photo_button, edit_message_button)
+        keyboard.add(menu_button)
+        bot.send_message(chat_id=chat_id, text="Выберите действие:", reply_markup=keyboard)
+    else:
+        # Если объект не найден, отправляем сообщение об ошибке
+        bot.send_message(chat_id=chat_id, text="Объект не найден.")
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data.startswith("add_photo_"):
+        _, object_id = call.data.split("_")
+        handle_add_photo(call.message.chat.id, object_id)
+    elif call.data.startswith("edit_message_"):
+        _, object_id = call.data.split("_")
+        handle_edit_message(call.message.chat.id, object_id)
+    elif call.data == "back":
+        show_menu(call.message)
+    bot.answer_callback_query(call.id)
+def show_object_details_with_actions(chat_id, object_id):
+    # Получаем детали объекта
+    object_details = get_object_details(object_id)
+    if object_details:
+        # Формируем сообщение с деталями объекта
+        message_text = f"Объект: {object_details['object_name']}\nСообщение: {object_details['message']}"
+        if object_details['file_id']:
+            # Если есть фото, отправляем его
+            bot.send_photo(chat_id=chat_id, photo=object_details['file_id'], caption=message_text)
+        else:
+            # Если нет фото, отправляем только текст
+            bot.send_message(chat_id=chat_id, text=message_text)
+
+        # Формируем клавиатуру с кнопками
+        keyboard = InlineKeyboardMarkup()
+        add_photo_button = InlineKeyboardButton("Добавить фото", callback_data=f"add_photo_{object_id}")
+        edit_message_button = InlineKeyboardButton("Изменить сообщение", callback_data=f"edit_message_{object_id}")
+        menu_button = InlineKeyboardButton("Меню", callback_data="back")
+        keyboard.add(add_photo_button, edit_message_button)
+        keyboard.add(menu_button)
+        bot.send_message(chat_id=chat_id, text="Выберите действие:", reply_markup=keyboard)
+    else:
+        # Если объект не найден, отправляем сообщение об ошибке
+        bot.send_message(chat_id=chat_id, text="Объект не найден.")
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data.startswith("add_photo_"):
+        _, object_id = call.data.split("_")
+        handle_add_photo(call.message.chat.id, object_id)
+    elif call.data.startswith("edit_message_"):
+        _, object_id = call.data.split("_")
+        handle_edit_message(call.message.chat.id, object_id)
+    elif call.data == "back":
+        show_menu(call.message)
+    bot.answer_callback_query(call.id)
+def show_object_details_with_actions(chat_id, object_id):
+    # Получаем детали объекта
+    object_details = get_object_details(object_id)
+    if object_details:
+        # Формируем сообщение с деталями объекта
+        message_text = f"Объект: {object_details['object_name']}\nСообщение: {object_details['message']}"
+        if object_details['file_id']:
+            # Если есть фото, отправляем его
+            bot.send_photo(chat_id=chat_id, photo=object_details['file_id'], caption=message_text)
+        else:
+            # Если нет фото, отправляем только текст
+            bot.send_message(chat_id=chat_id, text=message_text)
+
+        # Формируем клавиатуру с кнопками
+        keyboard = InlineKeyboardMarkup()
+        add_photo_button = InlineKeyboardButton("Добавить фото", callback_data=f"add_photo_{object_id}")
+        edit_message_button = InlineKeyboardButton("Изменить сообщение", callback_data=f"edit_message_{object_id}")
+        menu_button = InlineKeyboardButton("Меню", callback_data="back")
+        keyboard.add(add_photo_button, edit_message_button)
+        keyboard.add(menu_button)
+        bot.send_message(chat_id=chat_id, text="Выберите действие:", reply_markup=keyboard)
+    else:
+        # Если объект не найден, отправляем сообщение об ошибке
+        bot.send_message(chat_id=chat_id, text="Объект не найден.")
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data.startswith("add_photo_"):
+        _, object_id = call.data.split("_")
+        handle_add_photo(call.message.chat.id, object_id)
+    elif call.data.startswith("edit_message_"):
+        _, object_id = call.data.split("_")
+        handle_edit_message(call.message.chat.id, object_id)
+    elif call.data == "back":
+        show_menu(call.message)
+    bot.answer_callback_query(call.id)
+def show_object_details_with_actions(chat_id, object_id):
+    # Получаем детали объекта
+    object_details = get_object_details(object_id)
+    if object_details:
+        # Формируем сообщение с деталями объекта
+        message_text = f"Объект: {object_details['object_name']}\nСообщение: {object_details['message']}"
+        if object_details['file_id']:
+            # Если есть фото, отправляем его
+            bot.send_photo(chat_id=chat_id, photo=object_details['file_id'], caption=message_text)
+        else:
+            # Если нет фото, отправляем только текст
+            bot.send_message(chat_id=chat_id, text=message_text)
+
+        # Формируем клавиатуру с кнопками
+        keyboard = InlineKeyboardMarkup()
+        add_photo_button = InlineKeyboardButton("Добавить фото", callback_data=f"add_photo_{object_id}")
+        edit_message_button = InlineKeyboardButton("Изменить сообщение", callback_data=f"edit_message_{object_id}")
+        menu_button = InlineKeyboardButton("Меню", callback_data="back")
+        keyboard.add(add_photo_button, edit_message_button)
+        keyboard.add(menu_button)
+        bot.send_message(chat_id=chat_id, text="Выберите действие:", reply_markup=keyboard)
+    else:
+        # Если объект не найден, отправляем сообщение об ошибке
+        bot.send_message(chat_id=chat_id, text="Объект не найден.")
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data.startswith("add_photo_"):
+        _, object_id = call.data.split("_")
+        handle_add_photo(call.message.chat.id, object_id)
+    elif call.data.startswith("edit_message_"):
+        _, object_id = call.data.split("_")
+        handle_edit_message(call.message.chat.id, object_id)
+    elif call.data == "back":
+        show_menu(call.message)
+    bot.answer_callback_query(call.id)
+def show_object_details_with_actions(chat_id, object_id):
+    # Получаем детали объекта
+    object_details = get_object_details(object_id)
+    if object_details:
+        # Формируем сообщение с деталями объекта
+        message_text = f"Объект: {object_details['object_name']}\nСообщение: {object_details['message']}"
+        if object_details['file_id']:
+            # Если есть фото, отправляем его
+            bot.send_photo(chat_id=chat_id, photo=object_details['file_id'], caption=message_text)
+        else:
+            # Если нет фото, отправляем только текст
+            bot.send_message(chat_id=chat_id, text=message_text)
+
+        # Формируем клавиатуру с кнопками
+        keyboard = InlineKeyboardMarkup()
+        add_photo_button = InlineKeyboardButton("Добавить фото", callback_data=f"add_photo_{object_id}")
+        edit_message_button = InlineKeyboardButton("Изменить сообщение", callback_data=f"edit_message_{object_id}")
+        menu_button = InlineKeyboardButton("Меню", callback_data="back")
+        keyboard.add(add_photo_button, edit_message_button)
+        keyboard.add(menu_button)
+        bot.send_message(chat_id=chat_id, text="Выберите действие:", reply_markup=keyboard)
+    else:
+        # Если объект не найден, отправляем сообщение об ошибке
+        bot.send_message(chat_id=chat_id, text="Объект не найден.")
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data.startswith("add_photo_"):
+        _, object_id = call.data.split("_")
+        handle_add_photo(call.message.chat.id, object_id)
+    elif call.data.startswith("edit_message_"):
+        _, object_id = call.data.split("_")
+        handle_edit_message(call.message.chat.id, object_id)
+    elif call.data == "back":
+        show_menu(call.message)
+    bot.answer_callback_query(call.id)
+def show_object_details_with_actions(chat_id, object_id):
+    # Получаем детали объекта
+    object_details = get_object_details(object_id)
+    if object_details:
+        # Формируем сообщение с деталями объекта
+        message_text = f"Объект: {object_details['object_name']}\nСообщение: {object_details['message']}"
+        if object_details['file_id']:
+            # Если есть фото, отправляем его
+            bot.send_photo(chat_id=chat_id, photo=object_details['file_id'], caption=message_text)
+        else:
+            # Если нет фото, отправляем только текст
+            bot.send_message(chat_id=chat_id, text=message_text)
+
+        # Формируем клавиатуру с кнопками
+        keyboard = InlineKeyboardMarkup()
+        add_photo_button = InlineKeyboardButton("Добавить фото", callback_data=f"add_photo_{object_id}")
+        edit_message_button = InlineKeyboardButton("Изменить сообщение", callback_data=f"edit_message_{object_id}")
+        menu_button = InlineKeyboardButton("Меню", callback_data="back")
+        keyboard.add(add_photo_button, edit_message_button)
+        keyboard.add(menu_button)
+        bot.send_message(chat_id=chat_id, text="Выберите действие:", reply_markup=keyboard)
+    else:
+        # Если объект не найден, отправляем сообщение об ошибке
+        bot.send_message(chat_id=chat_id, text="Объект не найден.")
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data.startswith("add_photo_"):
+        _, object_id = call.data.split("_")
+        handle_add_photo(call.message.chat.id, object_id)
+    elif call.data.startswith("edit_message_"):
+        _, object_id = call.data.split("_")
+        handle_edit_message(call.message.chat.id, object_id)
+    elif call.data == "back":
+        show_menu(call.message)
+    bot.answer_callback_query(call.id)
+def show_object_details_with_actions(chat_id, object_id):
+    # Получаем детали объекта
+    object_details = get_object_details(object_id)
+    if object_details:
+        # Формируем сообщение с деталями объекта
+        message_text = f"Объект: {object_details['object_name']}\nСообщение: {object_details['message']}"
+        if object_details['file_id']:
+            # Если есть фото, отправляем его
+            bot.send_photo(chat_id=chat_id, photo=object_details['file_id'], caption=message_text)
+        else:
+            # Если нет фото, отправляем только текст
+            bot.send_message(chat_id=chat_id, text=message_text)
+
+        # Формируем клавиатуру с кнопками
+        keyboard = InlineKeyboardMarkup()
+        add_photo_button = InlineKeyboardButton("Добавить фото", callback_data=f"add_photo_{object_id}")
+        edit_message_button = InlineKeyboardButton("Изменить сообщение", callback_data=f"edit_message_{object_id}")
+        menu_button = InlineKeyboardButton("Меню", callback_data="back")
+        keyboard.add(add_photo_button, edit_message_button)
+        keyboard.add(menu_button)
+        bot.send_message(chat_id=chat_id, text="Выберите действие:", reply_markup=keyboard)
+    else:
+        # Если объект не найден, отправляем сообщение об ошибке
+        bot.send_message(chat_id=chat_id, text="Объект не найден.")
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data.startswith("add_photo_"):
+        _, object_id = call.data.split("_")
+        handle_add_photo(call.message.chat.id, object_id)
+    elif call.data.startswith("edit_message_"):
+        _, object_id = call.data.split("_")
+        handle_edit_message(call.message.chat.id, object_id)
+    elif call.data == "back":
+        show_menu(call.message)
+    bot.answer_callback_query(call.id)
+def show_object_details_with_actions(chat_id, object_id):
+    # Получаем детали объекта
+    object_details = get_object_details(object_id)
+    if object_details:
+        # Формируем сообщение с деталями объекта
+        message_text = f"Объект: {object_details['object_name']}\nСообщение: {object_details['message']}"
+        if object_details['file_id']:
+            # Если есть фото, отправляем его
+            bot.send_photo(chat_id=chat_id, photo=object_details['file_id'], caption=message_text)
+        else:
+            # Если нет фото, отправляем только текст
+            bot.send_message(chat_id=chat_id, text=message_text)
+
+        # Формируем клавиатуру с кнопками
+        keyboard = InlineKeyboardMarkup()
+        add_photo_button = InlineKeyboardButton("Добавить фото", callback_data=f"add_photo_{object_id}")
+        edit_message_button = InlineKeyboardButton("Изменить сообщение", callback_data=f"edit_message_{object_id}")
+        menu_button = InlineKeyboardButton("Меню", callback_data="back")
+        keyboard.add(add_photo_button, edit_message_button)
+        keyboard.add(menu_button)
+        bot.send_message(chat_id=chat_id, text="Выберите действие:", reply_markup=keyboard)
+    else:
+        # Если объект не найден, отправляем сообщение об ошибке
+        bot.send_message(chat_id=chat_id, text="Объект не найден.")
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data.startswith("add_photo_"):
+        _, object_id = call.data.split("_")
+        handle_add_photo(call.message.chat.id, object_id)
+    elif call.data.startswith("edit_message_"):
+        _, object_id = call.data.split("_")
+        handle_edit_message(call.message.chat.id, object_id)
+    elif call.data == "back":
+        show_menu(call.message)
+    bot.answer_callback_query(call.id)
+def show_object_details_with_actions(chat_id, object_id):
+    # Получаем детали объекта
+    object_details = get_object_details(object_id)
+    if object_details:
+        # Формируем сообщение с деталями объекта
+        message_text = f"Объект: {object_details['object_name']}\nСообщение: {object_details['message']}"
+        if object_details['file_id']:
+            # Если есть фото, отправляем его
+            bot.send_photo(chat_id=chat_id, photo=object_details['file_id'], caption=message_text)
+        else:
+            # Если нет фото, отправляем только текст
+            bot.send_message(chat_id=chat_id, text=message_text)
+
+        # Формируем клавиатуру с кнопками
+        keyboard = InlineKeyboardMarkup()
+        add_photo_button = InlineKeyboardButton("Добавить фото", callback_data=f"add_photo_{object_id}")
+        edit_message_button = InlineKeyboardButton("Изменить сообщение", callback_data=f"edit_message_{object_id}")
+        menu_button = InlineKeyboardButton("Меню", callback_data="back")
+        keyboard.add(add_photo_button, edit_message_button)
+        keyboard.add(menu_button)
+        bot.send_message(chat_id=chat_id, text="Выберите действие:", reply_markup=keyboard)
+    else:
+        # Если объект не найден, отправляем сообщение об ошибке
+        bot.send_message(chat_id=chat_id, text="Объект не найден.")
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data.startswith("add_photo_"):
+        _, object_id = call.data.split("_")
+        handle_add_photo(call.message.chat.id, object_id)
+    elif call.data.startswith("edit_message_"):
+        _, object_id = call.data.split("_")
+        handle_edit_message(call.message.chat.id, object_id)
+    elif call.data == "back":
+        show_menu(call.message)
+    bot.answer_callback_query(call.id)
+def show_object_details_with_actions(chat_id, object_id):
+    # Получаем детали объекта
+    object_details = get_object_details(object_id)
+    if object_details:
+        # Формируем сообщение с деталями объекта
+        message_text = f"Объект: {object_details['object_name']}\nСообщение: {object_details['message']}"
+        if object_details['file_id']:
+            # Если есть фото, отправляем его
+            bot.send_photo(chat_id=chat_id, photo=object_details['file_id'], caption=message_text)
+        else:
+            # Если нет фото, отправляем только текст
+            bot.send_message(chat_id=chat_id, text=message_text)
+
+        # Формируем клавиатуру с кнопками
+        keyboard = InlineKeyboardMarkup()
+        add_photo_button = InlineKeyboardButton("Добавить фото", callback_data=f"add_photo_{object_id}")
+        edit_message_button = InlineKeyboardButton("Изменить сообщение", callback_data=f"edit_message_{object_id}")
+        menu_button = InlineKeyboardButton("Меню", callback_data="back")
+        keyboard.add(add_photo_button, edit_message_button)
+        keyboard.add(menu_button)
+        bot.send_message(chat_id=chat_id, text="Выберите действие:", reply_markup=keyboard)
+    else:
+        # Если объект не найден, отправляем сообщение об ошибке
+        bot.send_message(chat_id=chat_id, text="Объект не найден.")
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data.startswith("add_photo_"):
+        _, object_id = call.data.split("_")
+        handle_add_photo(call.message.chat.id, object_id)
+    elif call.data.startswith("edit_message_"):
+        _, object_id = call.data.split("_")
+        handle_edit_message(call.message.chat.id, object_id)
+    elif call.data == "back":
+        show_menu(call.message)
+    bot.answer_callback_query(call.id)
+def show_object_details_with_actions(chat_id, object_id):
+    # Получаем детали объекта
+    object_details = get_object_details(object_id)
+    if object_details:
+        # Формируем сообщение с деталями объекта
+        message_text = f"Объект: {object_details['object_name']}\nСообщение: {object_details['message']}"
+        if object_details['file_id']:
+            # Если есть фото, отправляем его
+            bot.send_photo(chat_id=chat_id, photo=object_details['file_id'], caption=message_text)
+        else:
+            # Если нет фото, отправляем только текст
+            bot.send_message(chat_id=chat_id, text=message_text)
+
+        # Формируем клавиатуру с кнопками
+        keyboard = InlineKeyboardMarkup()
+        add_photo_button = InlineKeyboardButton("Добавить фото", callback_data=f"add_photo_{object_id}")
+        edit_message_button = InlineKeyboardButton("Изменить сообщение", callback_data=f"edit_message_{object_id}")
+        menu_button = InlineKeyboardButton("Меню", callback_data="back")
+        keyboard.add(add_photo_button, edit_message_button)
+        keyboard.add(menu_button)
+        bot.send_message(chat_id=chat_id, text="Выберите действие:", reply_markup=keyboard)
+    else:
+        # Если объект не найден, отправляем сообщение об ошибке
+        bot.send_message(chat_id=chat_id, text="Объект не найден.")
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data.startswith("add_photo_"):
+        _, object_id = call.data.split("_")
+        handle_add_photo(call.message.chat.id, object_id)
+    elif call.data.startswith("edit_message_"):
+        _, object_id = call.data.split("_")
+        handle_edit_message(call.message.chat.id, object_id)
+    elif call.data == "back":
+        show_menu(call.message)
+    bot.answer_callback_query(call.id)
+def show_object_details_with_actions(chat_id, object_id):
+    # Получаем детали объекта
+    object_details = get_object_details(object_id)
+    if object_details:
+        # Формируем сообщение с деталями объекта
+        message_text = f"Объект: {object_details['object_name']}\nСообщение: {object_details['message']}"
+        if object_details['file_id']:
+            # Если есть фото, отправляем его
+            bot.send_photo(chat_id=chat_id, photo=object_details['file_id'], caption=message_text)
+        else:
+            # Если нет фото, отправляем только текст
+            bot.send_message(chat_id=chat_id, text=message_text)
+
+        # Формируем клавиатуру с кнопками
+        keyboard = InlineKeyboardMarkup()
+        add_photo_button = InlineKeyboardButton("Добавить фото", callback_data=f"add_photo_{object_id}")
+        edit_message_button = InlineKeyboardButton("Изменить сообщение", callback_data=f"edit_message_{object_id}")
+        menu_button = InlineKeyboardButton("Меню", callback_data="back")
+        keyboard.add(add_photo_button, edit_message_button)
+        keyboard.add(menu_button)
+        bot.send_message(chat_id=chat_id, text="Выберите действие:", reply_markup=keyboard)
+    else:
+        # Если объект не найден, отправляем сообщение об ошибке
+        bot.send_message(chat_id=chat_id, text="Объект не найден.")
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data.startswith("add_photo_"):
+        _, object_id = call.data.split("_")
+        handle_add_photo(call.message.chat.id, object_id)
+    elif call.data.startswith("edit_message_"):
+        _, object_id = call.data.split("_")
+        handle_edit_message(call.message.chat.id, object_id)
+    elif call.data == "back":
+        show_menu(call.message)
+    bot.answer_callback_query(call.id)
+def show_object_details_with_actions(chat_id, object_id):
+    # Получаем детали объекта
+    object_details = get_object_details(object_id)
+    if object_details:
+        # Формируем сообщение с деталями объекта
+        message_text = f"Объект: {object_details['object_name']}\nСообщение: {object_details['message']}"
+        if object_details['file_id']:
+            # Если есть фото, отправляем его
+            bot.send_photo(chat_id=chat_id, photo=object_details['file_id'], caption=message_text)
+        else:
+            # Если нет фото, отправляем только текст
+            bot.send_message(chat_id=chat_id, text=message_text)
+
+        # Формируем клавиатуру с кнопками
+        keyboard = InlineKeyboardMarkup()
+        add_photo_button = InlineKeyboardButton("Добавить фото", callback_data=f"add_photo_{object_id}")
+        edit_message_button = InlineKeyboardButton("Изменить сообщение", callback_data=f"edit_message_{object_id}")
+        menu_button = InlineKeyboardButton("Меню", callback_data="back")
+        keyboard.add(add_photo_button, edit_message_button)
+        keyboard.add(menu_button)
+        bot.send_message(chat_id=chat_id, text="Выберите действие:", reply_markup=keyboard)
+    else:
+        # Если объект не найден, отправляем сообщение об ошибке
+        bot.send_message(chat_id=chat_id, text="Объект не найден.")
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data.startswith("add_photo_"):
+        _, object_id = call.data.split("_")
+        handle_add_photo(call.message.chat.id, object_id)
+    elif call.data.startswith("edit_message_"):
+        _, object_id = call.data.split("_")
+        handle_edit_message(call.message.chat.id, object_id)
+    elif call.data == "back":
+        show_menu(call.message)
+    bot.answer_callback_query(call.id)
+def show_object_details_with_actions(chat_id, object_id):
+    # Получаем детали объекта
+    object_details = get_object_details(object_id)
+    if object_details:
+        # Формируем сообщение с деталями объекта
+        message_text = f"Объект: {object_details['object_name']}\nСообщение: {object_details['message']}"
+        if object_details['file_id']:
+            # Если есть фото, отправляем его
+            bot.send_photo(chat_id=chat_id, photo=object_details['file_id'], caption=message_text)
+        else:
+            # Если нет фото, отправляем только текст
+            bot.send_message(chat_id=chat_id, text=message_text)
+
+        # Формируем клавиатуру с кнопками
+        keyboard = InlineKeyboardMarkup()
+        add_photo_button = InlineKeyboardButton("Добавить фото", callback_data=f"add_photo_{object_id}")
+        edit_message_button = InlineKeyboardButton("Изменить сообщение", callback_data=f"edit_message_{object_id}")
+        menu_button = InlineKeyboardButton("Меню", callback_data="back")
+        keyboard.add(add_photo_button, edit_message_button)
+        keyboard.add(menu_button)
+        bot.send_message(chat_id=chat_id, text="Выберите действие:", reply_markup=keyboard)
+    else:
+        # Если объект не найден, отправляем сообщение об ошибке
+        bot.send_message(chat_id=chat_id, text="Объект не найден.")
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    if call.data.startswith("add_photo_"):
+        _, object_id = call.data.split("_")
+        handle_add_photo(call.message.chat.id, object_id)
+    elif call.data.startswith("edit_message_"):
+        _, object_id = call.data.split("_")
+        handle_edit_message(call.message.chat.id, object_id)
+    elif call.data == "back":
+        show_menu(call.message)
+    bot.answer_callback_query(call.id)
 
 
 
