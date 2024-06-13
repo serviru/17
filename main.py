@@ -402,9 +402,13 @@ from telebot import types
 import time
 from aiogram import Dispatcher
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-from telegram import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup # type: ignore
+from telegram import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler # type: ignore
 from telegram import ReplyKeyboardMarkup # type: ignore
+
+
+
+
 
 
 
@@ -482,6 +486,103 @@ def create_tables():
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
         """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS completed (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                item_id INTEGER,
+                user_id INTEGER,
+                completed_at TEXT,
+                FOREIGN KEY (item_id) REFERENCES items(id),
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        """)
+
+def mark_as_completed(chat_id, item_id):
+    user_id = get_user_id(chat_id)
+    conn = get_db_connection()
+    with conn:
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO completed (item_id, user_id, completed_at) VALUES (?, ?, DATE('now'))", (item_id, user_id))
+        
+    # Отправляем сообщение пользователю
+    bot.send_message(chat_id, "Задача отмечена как выполненная.")
+
+
+
+
+def show_completed_tasks(chat_id):
+    user_id = get_user_id(chat_id)
+    conn = get_db_connection()
+    with conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT items.object_name, completed.completed_at "
+                      "FROM completed "
+                      "JOIN items ON completed.item_id = items.id "
+                      "WHERE completed.user_id = ? "
+                      "ORDER BY completed.completed_at DESC", (user_id,))
+        rows = cursor.fetchall()
+        
+        if rows:
+            message = "Выполненные задачи:\n\n"
+            for row in rows:
+                message += f"- {row[0]} (выполнено {row[1]})\n"
+            keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+            keyboard.add(types.KeyboardButton("Назад"))
+            bot.send_message(chat_id, message, reply_markup=keyboard)
+        else:
+            bot.send_message(chat_id, "У вас пока нет выполненных задач.", reply_markup=get_main_menu_keyboard())
+
+
+'''
+# Функции для работы с базой данных
+def get_db_connection():
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def create_tables():
+    conn = get_db_connection()
+    with conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE,
+                chat_id INTEGER
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS photos (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                file_id TEXT UNIQUE
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                object_name TEXT,
+                photo_id INTEGER,
+                message TEXT,
+                user_id INTEGER,
+                FOREIGN KEY (photo_id) REFERENCES photos(id),
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS completed (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                item_id INTEGER,
+                user_id INTEGER,
+                completed_at TEXT,
+                FOREIGN KEY (item_id) REFERENCES items(id),
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        """)
+
+
+
+'''
+
+
 
 def add_user(username, chat_id):
     conn = get_db_connection()
@@ -530,21 +631,32 @@ def start(message):
     bot.send_message(message.chat.id, "Добро пожаловать! Выберите действие:", reply_markup=get_main_menu_keyboard())
 
 def get_main_menu_keyboard():
-    keyboard = types.ReplyKeyboardMarkup(row_width=3, resize_keyboard=True)
-    buttons = [types.KeyboardButton(name) for name in ['Добавить', 'Просмотреть', 'Отмена']]
-    keyboard.add(*buttons)
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    keyboard.add(
+        types.KeyboardButton("Добавить"),
+        types.KeyboardButton("Просмотреть"),
+        types.KeyboardButton("Выполнено"),
+        types.KeyboardButton("Отмена")
+    )
     return keyboard
 
-@bot.message_handler(func=lambda message: message.text in ['Добавить', 'Просмотреть',  'Отмена'])
+
+
+
+
+
+@bot.message_handler(func=lambda message: message.text in ['Добавить', 'Просмотреть', 'Выполнено', 'Отмена'])
 def handle_menu_option(message):
     if message.text == 'Добавить':
         show_object_selection(message)
     elif message.text == 'Просмотреть':
         show_menu(message)
-    #elif message.text == 'Редактировать':
-        #show_menu(message)
+    elif message.text == 'Выполнено':
+        show_completed_tasks(message.chat.id)
     elif message.text == 'Отмена':
         bot.send_message(message.chat.id, "Добро пожаловать! Выберите действие:", reply_markup=get_main_menu_keyboard())
+
+
 
 def show_menu(message):
     conn = get_db_connection()
@@ -630,6 +742,28 @@ def show_object_details(message, object_name, page=1):
     else:
         bot.send_message(chat_id=message.chat.id, text='Объект не найден.')
 
+def get_object_details(object_id):
+    conn = get_db_connection()
+    with conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT object_name, message, photos.file_id "
+                      "FROM items "
+                      "LEFT JOIN photos ON items.photo_id = photos.id "
+                      "WHERE items.id = ?", (object_id,))
+        row = cursor.fetchone()
+        if row:
+            return {
+                "object_name": row[0],
+                "message": row[1],
+                "file_id": row[2]
+            }
+        else:
+            return None
+
+def edit_delete_keyboard():
+    keyboard = [[InlineKeyboardButton("Редактировать", callback_data="edit"),
+                 InlineKeyboardButton("Удалить", callback_data="delete")]]
+    return InlineKeyboardMarkup(keyboard)
 
 @bot.callback_query_handler(func=lambda call: True)
 def handle_callback(call):
@@ -670,36 +804,6 @@ def show_object_details_with_actions(chat_id, object_id):
 
 
 
-
-
-'''
-def send_message(update, context, results, index):
-    object_name, file_id, message = results[index]
-
-    # Создаем инлайн-клавиатуру с кнопками "Предыдущий", "Следующий" и "Редактировать"
-    keyboard = [
-        [InlineKeyboardButton("Предыдущий", callback_data='prev', resize_keyboard=True, width=1),
-         InlineKeyboardButton("Следующий", callback_data='next', resize_keyboard=True, width=1)],
-        [InlineKeyboardButton("Редактировать", callback_data='edit', resize_keyboard=True, width=1)]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard, resize_keyboard=True)
-
-    # Отправляем сообщение с фото или текстом
-    if file_id:
-        context.bot.send_photo(chat_id=update.effective_chat.id, photo=file_id, caption=f"{object_name}\n{message}",
-                               reply_markup=reply_markup)
-    else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text=f"{object_name}\n{message}",
-                                 reply_markup=reply_markup)
-
-    # Сохраняем список результатов в контекст пользователя
-    context.user_data['results'] = results
-
-    # Сохраняем индекс текущего сообщения в контекст пользователя
-    context.user_data['current_index'] = index
-
-
-'''
 @bot.message_handler(state='editing', func=lambda message: message.text == "Отмена")
 def handle_edit_menu_cancel(message):
     # Возвращаем пользователя в главное меню
