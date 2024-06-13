@@ -395,18 +395,17 @@ if __name__ == '__main__':
 
 '''
 
+
 import telebot
-import os
 import sqlite3
-from telebot import TeleBot, types
+from telebot import types
 import time
+from aiogram import Dispatcher
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-from telegram import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import CallbackContext
-from telegram.update import Update
-from telegram.ext import CommandHandler, CallbackQueryHandler
-from telegram import ReplyKeyboardMarkup, KeyboardButton
-from telegram.ext import CallbackContext, MessageHandler, Filters, Dispatcher
+from telegram import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup # type: ignore
+from telegram.ext import CommandHandler # type: ignore
+from telegram import ReplyKeyboardMarkup # type: ignore
+
 
 
 # Инициализация бота
@@ -652,7 +651,7 @@ def handle_callback(call):
 
 def show_object_details_with_actions(chat_id, object_id):
     # Получаем детали объекта
-    object_details = get_object_details(object_id)
+    object_details = get_object_details(object_id) # type: ignore
 
     # Формируем клавиатуру с кнопками "Выполнено" и "Меню"
     keyboard = InlineKeyboardMarkup()
@@ -664,7 +663,7 @@ def show_object_details_with_actions(chat_id, object_id):
     # Отправляем новое сообщение с деталями объекта и клавиатурой
     bot.send_message(
         chat_id=chat_id,
-        text=format_object_details(object_details),
+        text=format_object_details(object_details), # type: ignore
         reply_markup=keyboard
     )
 
@@ -715,7 +714,7 @@ def show_main_menu(update, context):
     # Создание клавиатуры с основными опциями
     keyboard = get_main_menu_keyboard()
     context.bot.send_message(chat_id=update.effective_chat.id, text="Главное меню", reply_markup=keyboard)
-    bot.send_message(chat_id=message.chat.id, text="Меню редактирования")
+    bot.send_message(chat_id=message.chat.id, text="Меню редактирования") # type: ignore
 
 
 
@@ -849,7 +848,7 @@ def main() -> None:
     """
     Главная функция, запускающая бота.
     """
-    updater = Updater(token="6625466018:AAFbUtVtlMJ6g8Oip1msrgwhWzKOxRLosiU")
+    updater = updater(token="6625466018:AAFbUtVtlMJ6g8Oip1msrgwhWzKOxRLosiU")
     dispatcher: Dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler("start", start))
     updater.start_polling()
