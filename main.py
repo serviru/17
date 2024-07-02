@@ -11,8 +11,8 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
 # Инициализация бота
-bot = TeleBot('6625466018:AAFbUtVtlMJ6g8Oip1msrgwhWzKOxRLosiU')
-#bot = TeleBot('6992737528:AAEhRgiVOQOtfb0m9RCXbej74r9MP6FaOjQ')
+bot = TeleBot('')
+#bot = TeleBot('')
 
 
 @bot.message_handler(commands=['help', 'weather'])
@@ -310,7 +310,7 @@ from telegram import ReplyKeyboardMarkup
 
 
 # Инициализация бота
-bot = telebot.TeleBot('6625466018:AAFbUtVtlMJ6g8Oip1msrgwhWzKOxRLosiU')
+bot = telebot.TeleBot('')
 #bot = TeleBot('')
 
 
@@ -967,7 +967,7 @@ def main() -> None:
     """
     Главная функция, запускающая бота.
     """
-    updater = updater(token="6625466018:AAFbUtVtlMJ6g8Oip1msrgwhWzKOxRLosiU")
+    updater = updater(token="")
     dispatcher: Dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler("start", start))
     updater.start_polling()
@@ -1133,7 +1133,7 @@ if __name__ == '__main__':
     main()
 
 
-6625466018:AAFbUtVtlMJ6g8Oip1msrgwhWzKOxRLosiU
+
 #=============================================================================================================
 #код не код нужна тборадотка
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
@@ -1399,7 +1399,7 @@ import logging
 
 
 # Инициализация бота
-bot = TeleBot('6625466018:AAFbUtVtlMJ6g8Oip1msrgwhWzKOxRLosiU')
+bot = TeleBot('')
 
 @bot.message_handler(commands=['help', 'weather'])
 def command_handler(message):
@@ -1941,7 +1941,7 @@ import logging
 
 
 # Инициализация бота
-bot = TeleBot('6625466018:AAFbUtVtlMJ6g8Oip1msrgwhWzKOxRLosiU')
+bot = TeleBot('')
 
 @bot.message_handler(commands=['help', 'weather'])
 def command_handler(message):
@@ -2763,8 +2763,8 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
 # Инициализация бота
-bot = TeleBot('6625466018:AAFbUtVtlMJ6g8Oip1msrgwhWzKOxRLosiU')
-#bot = TeleBot('6992737528:AAEhRgiVOQOtfb0m9RCXbej74r9MP6FaOjQ')
+bot = TeleBot('')
+#bot = TeleBot('')
 
 
 @bot.message_handler(commands=['help', 'weather'])
@@ -3037,7 +3037,7 @@ import sqlite3
 from telebot import TeleBot, types
 
 # Инициализация бота
-bot = TeleBot('6625466018:AAFbUtVtlMJ6g8Oip1msrgwhWzKOxRLosiU')
+bot = TeleBot('')
 
 # Словарь с доступными объектами
 object_names = {
@@ -3246,7 +3246,7 @@ import sqlite3
 from telebot import TeleBot, types
 
 # Инициализация бота
-bot = TeleBot('6992737528:AAEhRgiVOQOtfb0m9RCXbej74r9MP6FaOjQ')
+bot = TeleBot('')
 
 # Словарь с доступными объектами
 object_names = {
@@ -3420,7 +3420,7 @@ import sqlite3
 from telebot import types
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-bot = telebot.TeleBot('6625466018:AAFbUtVtlMJ6g8Oip1msrgwhWzKOxRLosiU')
+bot = telebot.TeleBot('')
 
 # Создание подключения к базе данных SQLite
 def get_db_connection():
@@ -3512,7 +3512,7 @@ import sqlite3
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # Создаем объект бота с токеном API
-bot = telebot.TeleBot('6625466018:AAFbUtVtlMJ6g8Oip1msrgwhWzKOxRLosiU')
+bot = telebot.TeleBot('')
 
 @bot.message_handler(commands=['hellp', 'weather'])
 def command_handler(message):
@@ -3761,7 +3761,7 @@ import sqlite3
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # Создаем объект бота с токеном API
-bot = telebot.TeleBot('6625466018:AAFbUtVtlMJ6g8Oip1msrgwhWzKOxRLosiU')
+bot = telebot.TeleBot('')
 
 def save_object_name(chat_id, file_id, name, comment):
     connection = sqlite3.connect('database.db')
@@ -3867,7 +3867,7 @@ bot.polling(none_stop=True)
 import telebot
 import sqlite3
 
-bot = telebot.TeleBot('6625466018:AAFbUtVtlMJ6g8Oip1msrgwhWzKOxRLosiU')
+bot = telebot.TeleBot('')
 name = None
 
 
