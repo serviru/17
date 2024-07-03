@@ -1,3 +1,10 @@
+
+#==========================================================================
+#работаем над этим кодом
+
+
+
+
 import telebot
 import sqlite3
 from telebot import types
@@ -276,7 +283,7 @@ def show_completed_tasks(chat_id):
         else:
             bot.send_message(chat_id, "У вас пока нет выполненных задач.", reply_markup=get_main_menu_keyboard())
 #====================================================================================================================================================================================================
-#работа с кнопкой просмотреть
+#работа с кнопкой просмотр
 def show_menu(message):
     conn = get_db_connection()
     c = conn.cursor()
@@ -320,7 +327,7 @@ def handle_menu_options(message):
 
         else:
             bot.send_message(chat_id=message.chat.id, text='Неверный выбор. Попробуйте еще раз.')
-'''
+
 def show_all_objects(message):
     conn = get_db_connection()
     c = conn.cursor()
@@ -333,7 +340,6 @@ def show_all_objects(message):
                            caption=f"Объект: {row[0]}\nСообщение: {row[1]}")
         else:
             bot.send_message(chat_id=message.chat.id, text=f"Объект: {row[0]}\nСообщение: {row[1]}")
-'''
 
 def show_object_details(message, object_name, page=1):
     conn = get_db_connection()
