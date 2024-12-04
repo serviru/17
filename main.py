@@ -3,7 +3,7 @@ from telebot import types
 import sqlite3
 import os
 from datetime import datetime
-
+import time
 
 
 API_TOKEN = '6625466018:AAFbUtVtlMJ6g8Oip1msrgwhWzKOxRLosiU'
@@ -28,7 +28,8 @@ def send_welcome(message):
     bot.send_message(message.chat.id, welcome_text)
 
 def send_weather_info(message):
-    weather_link = 'https://www.ventusky.com/?p=64.9;12.1;3&l=temperature-2m&t=20240501/20&src=link'
+    weather_link = 'https://yandex.ru/pogoda?lat=63.71604156&lon=66.66759491'
+    #weather_link = 'https://www.ventusky.com/?p=64.9;12.1;3&l=temperature-2m&t=20240501/20&src=link'
     weather_keyboard = types.InlineKeyboardMarkup()
     weather_keyboard.add(types.InlineKeyboardButton(text="Перейти на сайт погоды", url=weather_link))
     bot.send_message(message.chat.id, 'Перейдите по ссылке для просмотра погоды', reply_markup=weather_keyboard)
@@ -136,7 +137,7 @@ def show_users(message):
         user_info = (
             f"🔹 ID: {user_id}\n"
             f"🔹 Имя: {full_name}\n"
-            f"🔹 Пользователь: {username_display}\n"
+            #f"🔹 Пользователь: {username_display}\n"
             f"🔹 Роль: {role}\n\n"
         )
         
@@ -410,9 +411,33 @@ def register_user(user_id, first_name, last_name, username, profile_photo, statu
 
 
 
+def get_user_role(chat_id):
+    conn = sqlite3.connect('bot_database.db')  # Замените на имя вашего файла базы данных
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT role FROM users WHERE id=?", (chat_id,))
+    result = cursor.fetchone()  # Получаем первую строку результата
+    
+    conn.close()
+    
+    if result:
+        return result[0]  # Возвращаем роль пользователя
+    else:
+        return None  # Если пользователь не найден, возвращаем None
+
 def show_main_menu(chat_id):
+    user_role = get_user_role(chat_id)  # Получаем роль пользователя
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add("➕ Добавить", "📄 Осмотр", "✅ Выполнено", "🗄 Работа с БД", "🔍 Поиск")  #  '''"✉️ Сообщения"''' убране не все пользователи обрабатываются в базе данных
+
+    # Основные кнопки для всех пользователей
+    markup.add("➕ Добавить", "📄 Осмотр", "✅ Выполнено", "🔍 Поиск")
+
+    # Добавляем кнопку "🗄 Работа с БД" только для администраторов
+    if user_role == 'admin':
+        markup.add("🗄 Работа с БД")
+
+    #return markup  # Возвращаем разметку клавиатуры
+    
     bot.send_message(chat_id, "🌟 Главное меню 🌟", reply_markup=markup)
 
 @bot.message_handler(func=lambda message: message.text == "➕ Добавить")
@@ -808,7 +833,8 @@ def process_search_step(message, object_list):
                 
                 button_text = (f"{name}\n"
                                f"🔖 ID: {object_id}\n"
-                               f"📅 Создан: {full_date}")
+                               #f"📅 Создан: {full_date}"
+                               )
                 
                 markup.add(types.InlineKeyboardButton(text=button_text, callback_data=f"completed_{object_id}"))
             
@@ -912,6 +938,17 @@ def view_messages_by_last_name(message):
 @bot.message_handler(func=lambda message: message.text == "Отмена")
 def cancel(message):
    show_main_menu(message.chat.id)
+
+def main():
+    while True:
+        try:
+            print("Бот запущен. Ожидание сообщений...")
+            bot.polling(none_stop=True)
+        except Exception as e:
+            print(f"Произошла ошибка: {e}. Перезапуск бота через 5 секунд...")
+            time.sleep(5)  # Ждем 5 секунд перед перезапуском
+
+
 
 if __name__ == '__main__':
    bot.polling(none_stop=True)
